@@ -1,0 +1,4 @@
+sounddevice
+scipy
+speech_recognition
+transformers
