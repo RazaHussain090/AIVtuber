@@ -34,6 +34,79 @@ def speech_to_text(file_path='output.wav'):
             print("Could not request results from Google Speech Recognition service; {0}".format(e))
     return ""
 
+from pydub import AudioSegment
+
+# Convert MP3 to WAV
+def convert_mp3_to_wav(mp3_file_path, wav_file_path):
+    AudioSegment.converter = 'ffmpeg.exe'
+    audio = AudioSegment.from_mp3(mp3_file_path)
+    audio.export(wav_file_path, format="wav")
+
+import requests
+import json
+
+def synthesize_text_with_voicevox(text, speaker=1):
+    url = "http://localhost:50021/audio_query"
+    headers = {"Content-Type": "application/json"}
+    data = json.dumps({"text": text, "speaker": speaker})
+    
+    # Step 1: Generate Audio Query
+    response = requests.post(url, headers=headers, data=data)
+    if response.status_code != 200:
+        print("Failed to generate audio query")
+        return
+
+    audio_query = response.json()
+
+    # Step 2: Synthesize Audio
+    synthesis_url = "http://localhost:50021/synthesis"
+    synthesis_response = requests.post(synthesis_url, headers=headers, data=json.dumps(audio_query), params={"speaker": speaker})
+    if synthesis_response.status_code != 200:
+        print("Failed to synthesize audio")
+        return
+
+    # Step 3: Save or Play the Audio
+    with open("output.wav", "wb") as audio_file:
+        audio_file.write(synthesis_response.content)
+    print("Audio synthesized and saved as output.wav.")
+
+def synthesize_text_with_elevenlabs(message, api_key=""):
+    # Define the URL and request headers
+    url = "https://api.elevenlabs.io/v1/text-to-speech/LcfcDJNUP1GQjkzn1xUU/stream"
+    headers = {
+        "xi-api-key": "5f284a3c271bdaa0196b73ff5ab80b4a",
+        "Content-Type": "application/json"
+    }
+
+    # Define the request payload (JSON data)
+    payload = {
+        "text": message,
+        "model_id": "eleven_multilingual_v1"
+    }
+
+    # Send the POST request
+    response = requests.post(url, headers=headers, json=payload)
+
+    # Check the response status code and content
+    if response.status_code == 200:
+        # If the response content type is audio/mpeg, you can save it to a file
+        if response.headers.get("Content-Type") == "audio/mpeg":
+            with open("audio.mp3", "wb") as audio_file:
+                audio_file.write(response.content)
+                print("mp3 done")
+                audio = "audio.mp3"
+                convert_mp3_to_wav(audio,"output.wav")
+                playsound("C:/Users/pc/Documents/GitHub/AIVtuber/output.wav")
+                
+        else:
+            print("Unexpected response content type:", response.headers.get("Content-Type"))
+            print("Error "+ response)
+    else:
+        print("Request failed with status code:", response.status_code)
+        print("Error ", response)
+
+
+
 def create_ai_vtuber_chatbot():
     chatbot = pipeline("conversational", model="microsoft/DialoGPT-medium", return_dict=False )
     print("AI VTuber Chatbot initialized. Speak 'quit' to exit.")
@@ -50,7 +123,12 @@ def create_ai_vtuber_chatbot():
         print("AI VTuber:", response.generated_responses[0])
         response_text = response.generated_responses[0]
         # Convert the chatbot's response to speech
-        speak(response_text)
+        synthesize_text_with_elevenlabs(response_text)
 
 if __name__ == "__main__":
     create_ai_vtuber_chatbot()
+    # Example usage
+    #text_to_speak = "こんにちは、VOICEVOXです。"
+    #synthesize_text_with_voicevox(text_to_speak)
+    # Example usage
+
