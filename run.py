@@ -74,7 +74,7 @@ def synthesize_text_with_elevenlabs(message, api_key=""):
     # Define the URL and request headers
     url = "https://api.elevenlabs.io/v1/text-to-speech/LcfcDJNUP1GQjkzn1xUU/stream"
     headers = {
-        "xi-api-key": "5f284a3c271bdaa0196b73ff5ab80b4a",
+        "xi-api-key": "replace with your api key",
         "Content-Type": "application/json"
     }
 
