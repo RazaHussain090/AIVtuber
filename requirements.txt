@@ -2,3 +2,8 @@ sounddevice
 scipy
 speech_recognition
 transformers
+jinja2
+tensorflow
+pytorch
+gtts
+playsound
